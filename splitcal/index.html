@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cost Split</title>
+  <style>
+    :root {
+      --bg: #f3efe6;
+      --ink: #1c1915;
+      --muted: #6b6458;
+      --card: #fffcf7;
+      --line: #e4dccb;
+      --accent: #2f6f4e;
+      --accent-soft: #e8f3ec;
+      --warn: #8a4b12;
+      --shadow: 0 18px 50px rgba(40, 32, 18, 0.12);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      background:
+        radial-gradient(1200px 500px at 10% -10%, #fff8e8, transparent 55%),
+        radial-gradient(900px 400px at 110% 10%, #e7f1ea, transparent 50%),
+        var(--bg);
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+      padding: 32px 16px;
+    }
+
+    .card {
+      width: min(440px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px 26px 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.7rem;
+      letter-spacing: -0.02em;
+    }
+    .lede {
+      margin: 6px 0 22px;
+      color: var(--muted);
+      font-family: system-ui, sans-serif;
+      font-size: 0.92rem;
+    }
+
+    label {
+      display: block;
+      font-family: system-ui, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .field { margin-bottom: 18px; }
+
+    .currency {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 4px;
+      background: #f4eee3;
+      border-radius: 14px;
+    }
+    .currency button {
+      border: 0;
+      background: transparent;
+      padding: 10px 8px;
+      border-radius: 11px;
+      font: 650 0.95rem system-ui, sans-serif;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .currency button[aria-pressed="true"] {
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 6px 16px rgba(40,32,18,0.08);
+    }
+
+    .amount {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 4px 14px 4px 16px;
+      background: #fff;
+    }
+    .symbol {
+      font-size: 1.4rem;
+      color: var(--accent);
+      min-width: 1.2em;
+    }
+    .amount input {
+      flex: 1;
+      border: 0;
+      outline: 0;
+      font: 600 1.45rem/1.4 system-ui, sans-serif;
+      background: transparent;
+      width: 100%;
+      color: var(--ink);
+    }
+
+    .people {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .people input {
+      width: 72px;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 8px;
+      font: 650 1.1rem system-ui, sans-serif;
+      background: #fff;
+    }
+    .step {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: var(--ink);
+    }
+    .step:hover { background: var(--accent-soft); }
+
+    .result {
+      margin-top: 8px;
+      background: var(--accent-soft);
+      border-radius: 16px;
+      padding: 18px 18px 14px;
+    }
+    .result .caption {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .pay {
+      font-size: 2.15rem;
+      margin: 4px 0 2px;
+      letter-spacing: -0.03em;
+    }
+    .meta {
+      font-family: system-ui, sans-serif;
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin: 0;
+    }
+    .meta strong { color: var(--ink); }
+    .note {
+      margin-top: 10px;
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: var(--warn);
+    }
+    .error {
+      font-family: system-ui, sans-serif;
+      color: #8b2430;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Cost Split</h1>
+    <p class="lede">Split a bill evenly. Each share rounds up so the total is covered.</p>
+
+    <div class="field">
+      <label id="currency-label">Currency</label>
+      <div class="currency" role="group" aria-labelledby="currency-label">
+        <button type="button" id="usd" aria-pressed="true">USD ($)</button>
+        <button type="button" id="inr" aria-pressed="false">INR (₹)</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="total">Total</label>
+      <div class="amount">
+        <span class="symbol" id="symbol">$</span>
+        <input id="total" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="86.40" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="people">People</label>
+      <div class="people">
+        <button class="step" type="button" id="minus" aria-label="Fewer people">−</button>
+        <input id="people" type="number" min="1" step="1" value="4" />
+        <button class="step" type="button" id="plus" aria-label="More people">+</button>
+      </div>
+    </div>
+
+    <section class="result" aria-live="polite">
+      <p class="caption">Each person pays</p>
+      <p class="pay" id="pay">$21.60</p>
+      <p class="meta" id="meta"></p>
+      <p class="note hidden" id="note"></p>
+      <p class="error hidden" id="error"></p>
+    </section>
+  </main>
+
+  <script>
+    const SCALE = 2;
+    const CURRENCIES = {
+      USD: { code: "USD", locale: "en-US", symbol: "$" },
+      INR: { code: "INR", locale: "en-IN", symbol: "₹" },
+    };
+
+    let currency = "USD";
+
+    const els = {
+      usd: document.getElementById("usd"),
+      inr: document.getElementById("inr"),
+      symbol: document.getElementById("symbol"),
+      total: document.getElementById("total"),
+      people: document.getElementById("people"),
+      minus: document.getElementById("minus"),
+      plus: document.getElementById("plus"),
+      pay: document.getElementById("pay"),
+      meta: document.getElementById("meta"),
+      note: document.getElementById("note"),
+      error: document.getElementById("error"),
+    };
+
+    function formatMoney(minor) {
+      const { locale, code } = CURRENCIES[currency];
+      return new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: code,
+        minimumFractionDigits: SCALE,
+        maximumFractionDigits: SCALE,
+      }).format(minor / 10 ** SCALE);
+    }
+
+    function parseMinor(raw) {
+      const s = String(raw).trim().replace(/,/g, "");
+      if (!s) return { error: "Enter a total." };
+      if (!/^\d+(\.\d{0,2})?$/.test(s)) {
+        return { error: "Use a valid amount (up to 2 decimal places)." };
+      }
+      const [whole, frac = ""] = s.split(".");
+      return { minor: Number(whole) * 100 + Number((frac + "00").slice(0, 2)) };
+    }
+
+    function splitUp(totalMinor, people) {
+      const each = Math.ceil(totalMinor / people);
+      const collected = each * people;
+      return { each, collected, leftover: collected - totalMinor };
+    }
+
+    function render() {
+      const people = Number(els.people.value);
+      const parsed = parseMinor(els.total.value);
+      els.error.classList.add("hidden");
+      els.note.classList.add("hidden");
+
+      if (!Number.isInteger(people) || people < 1) {
+        els.pay.textContent = "—";
+        els.meta.textContent = "";
+        els.error.textContent = "Need at least 1 person.";
+        els.error.classList.remove("hidden");
+        return;
+      }
+      if (parsed.error) {
+        els.pay.textContent = "—";
+        els.meta.textContent = "";
+        els.error.textContent = parsed.error;
+        els.error.classList.remove("hidden");
+        return;
+      }
+
+      const { each, collected, leftover } = splitUp(parsed.minor, people);
+      els.pay.textContent = formatMoney(each);
+      els.meta.innerHTML =
+        `<strong>${people}</strong> people · bill ${formatMoney(parsed.minor)} · collected ${formatMoney(collected)}`;
+      if (leftover > 0) {
+        els.note.textContent = `Rounded up. Extra ${formatMoney(leftover)} covers leftover cents/paise.`;
+        els.note.classList.remove("hidden");
+      }
+    }
+
+    function setCurrency(next) {
+      currency = next;
+      els.symbol.textContent = CURRENCIES[next].symbol;
+      els.usd.setAttribute("aria-pressed", String(next === "USD"));
+      els.inr.setAttribute("aria-pressed", String(next === "INR"));
+      render();
+    }
+
+    els.usd.addEventListener("click", () => setCurrency("USD"));
+    els.inr.addEventListener("click", () => setCurrency("INR"));
+    els.total.addEventListener("input", render);
+    els.people.addEventListener("input", render);
+    els.minus.addEventListener("click", () => {
+      els.people.value = Math.max(1, Number(els.people.value || 1) - 1);
+      render();
+    });
+    els.plus.addEventListener("click", () => {
+      els.people.value = Number(els.people.value || 1) + 1;
+      render();
+    });
+
+    render();
+
+    // ponytail: integer cents/paise; add BigInt if bills exceed Number.MAX_SAFE_INTEGER
+    (function selfCheck() {
+      const a = splitUp(8640, 4);
+      const b = splitUp(10001, 3);
+      const c = parseMinor("10.5");
+      console.assert(a.each === 2160 && a.leftover === 0, "even split");
+      console.assert(b.each === 3334 && b.leftover === 1, "round up leftover");
+      console.assert(c.minor === 1050, "parse 10.5 as 1050");
+    })();
+  </script>
+</body>
+</html>
